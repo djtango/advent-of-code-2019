@@ -45,28 +45,32 @@
        first
        second))
 
-(defn find-point [point points]
-  (let [step-counts (partial map-indexed vector)]
-    (->> points
-         step-counts
-         (filter (fn [[steps p]]
-                   (= point p)))
-         first)))
+(defn index-points [points]
+  (->> points
+       (map-indexed vector)
+       (reduce (fn [index [steps p]]
+                 (if (index p)
+                   index
+                   (assoc index p steps)))
+               {})))
 
-(defn get-steps-to-intersect [w1-points w2-points point]
-  (let [w1-steps (first (find-point point w1-points))
-        w2-steps (first (find-point point w2-points))]
-    (+ w1-steps w2-steps)))
+(defn get-steps-to-intersect [w1-points->steps w2-points->steps]
+  (comp (partial apply +)
+        (juxt w1-points->steps
+              w2-points->steps)))
 
 (defn -main []
   (let [[w1 w2] (parse-input "/tmp/aoc3")
         origin [0 0]
         w1-points (trace origin w1)
         w2-points (trace origin w2)
+        w1-points->steps (index-points w1-points)
+        w2-points->steps (index-points w2-points)
         intersections (->> [w1-points w2-points]
                            (map set)
                            (reduce set/intersection))]
     (->> intersections
          (map (juxt identity
-                    (partial get-steps-to-intersect w1-points w2-points)))
+                    (get-steps-to-intersect w1-points->steps
+                                            w2-points->steps)))
          find-best)))
