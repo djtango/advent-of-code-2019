@@ -1,6 +1,17 @@
-(ns day4)
+(ns day4
+  (:require [clojure.core.async :as a :refer [go <! <!! >! >!! chan]]))
 
-(def bounds [138307 654504])
+(defn bounds []
+  (let [c (chan)]
+    (a/onto-chan c [138307 654504])
+    c))
+
+(defn build-range [bounds]
+  (let [c (chan)]
+    (a/onto-chan c
+                 (range (<!! bounds)
+                        (inc (<!! bounds))))
+    c))
 
 (defn s<= [c1 c2]
   (if (nil? c2)
@@ -20,7 +31,15 @@
       (and adjacent? monotonic?))))
 
 (defn -main []
-  (->> (range (first bounds)
-              (inc (second bounds)))
-       (filter (comp inspect str))
-       (count )))
+  (let [xs (build-range (bounds))
+        out (chan)]
+    (<!! (a/transduce
+           (filter (comp inspect str))
+           (completing (fn [acc _] (inc acc)))
+           0
+           xs))))
+
+(comment
+  (require 'day4 :reload)
+  (-main)
+  )
