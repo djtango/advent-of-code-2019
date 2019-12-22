@@ -1,0 +1,2 @@
+#! /bin/sh
+echo src/day4/day4.go | entr sh -c 'go build -o target/run -i src/day4/day4.go && ./target/run'
