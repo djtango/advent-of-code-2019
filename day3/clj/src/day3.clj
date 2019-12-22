@@ -54,23 +54,22 @@
                    (assoc index p steps)))
                {})))
 
-(defn get-steps-to-intersect [w1-points->steps w2-points->steps]
-  (comp (partial apply +)
-        (juxt w1-points->steps
-              w2-points->steps)))
+(defn get-steps-to-intersect [w1-points w2-points]
+  (let [w1-points->steps (index-points w1-points)
+        w2-points->steps (index-points w2-points)]
+    (comp (partial apply +)
+          (juxt w1-points->steps
+                w2-points->steps))))
 
 (defn -main []
   (let [[w1 w2] (parse-input "/tmp/aoc3")
         origin [0 0]
         w1-points (trace origin w1)
-        w2-points (trace origin w2)
-        w1-points->steps (index-points w1-points)
-        w2-points->steps (index-points w2-points)
-        intersections (->> [w1-points w2-points]
-                           (map set)
-                           (reduce set/intersection))]
-    (->> intersections
+        w2-points (trace origin w2)]
+    (->> [w1-points w2-points]
+         (map set)
+         (reduce set/intersection)
          (map (juxt identity
-                    (get-steps-to-intersect w1-points->steps
-                                            w2-points->steps)))
+                    (get-steps-to-intersect w1-points
+                                            w2-points)))
          find-best)))
